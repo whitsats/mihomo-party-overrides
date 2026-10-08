@@ -19,13 +19,15 @@ function main(config) {
   }
 
   try {
-    // --------------------------------------------------------------------------
-    // 一、 全局 DNS 引擎标准化与深度清洗
-    // --------------------------------------------------------------------------
+    // 动态自适应继承原配置的监听地址/端口，未定义时安全回退至标准 1053（避开 5353 mDNS 保留端口）
+    const safeListen = (config.dns && config.dns.listen)
+      ? config.dns.listen
+      : "127.0.0.1:1053";
+
     config.dns = {
       enable: true,
       ipv6: false,                        // 强制关闭 IPv6，杜绝双栈竞争超时
-      listen: "127.0.0.1:5353",
+      listen: safeListen,                 // 自适应动态监听端口 (避开 5353 mDNS 冲突)
       "enhanced-mode": "fake-ip",          // 锁定虚拟 IP 映射模式
       "fake-ip-range": "198.18.0.1/16",    // 严格遵循 IETF RFC 2544 / RFC 5735 保留网段
       "use-hosts": true,
